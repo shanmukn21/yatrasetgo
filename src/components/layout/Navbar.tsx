@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MapPin, Users, User, Home, LogOut, Bookmark, Clock, Settings } from 'lucide-react';
+import { Menu, X, MapPin, Users, User, Home, LogOut, Bookmark, Clock, Settings, LayoutDashboard } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -9,21 +9,26 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    // Get initial user state
     const getInitialUser = async () => {
       const { data } = await supabase.auth.getUser();
       const initialUser = data?.user ?? null;
       setUser(initialUser);
+      
+      if (initialUser?.email === 'shanmukn21@gmail.com') {
+        setIsAdmin(true);
+      }
     };
     
     getInitialUser();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setIsAdmin(currentUser?.email === 'shanmukn21@gmail.com');
     });
 
     return () => subscription.unsubscribe();
@@ -31,26 +36,16 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navbarClass = isScrolled || location.pathname !== '/' 
     ? 'bg-white shadow-md text-gray-800' 
     : 'bg-transparent text-white';
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -70,7 +65,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
             <span className="font-display text-2xl font-bold">
-              <span className="text-primary-600">Pack</span> Your Bags
+              <span className="text-primary-600">Yatra</span>SetGo
             </span>
           </Link>
 
@@ -101,6 +96,15 @@ const Navbar: React.FC = () => {
                 
                 {showProfileMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                    {isAdmin && (
+                      <Link
+                        to="/admin/dashboard"
+                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <LayoutDashboard size={16} />
+                        Admin Dashboard
+                      </Link>
+                    )}
                     <Link
                       to="/profile/trips"
                       className="block px-4 py-2 text-gray-800 hover:bg-gray-100 flex items-center gap-2"
@@ -146,7 +150,7 @@ const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
-              onClick={toggleMenu}
+              onClick={() => setIsOpen(!isOpen)}
               className="focus:outline-none"
               aria-label="Toggle Menu"
             >
@@ -180,6 +184,16 @@ const Navbar: React.FC = () => {
             
             {user ? (
               <>
+                {isAdmin && (
+                  <Link
+                    to="/admin/dashboard"
+                    className="flex items-center gap-2 py-3 px-4 hover:bg-gray-100 rounded-lg text-gray-800"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <LayoutDashboard size={18} />
+                    Admin Dashboard
+                  </Link>
+                )}
                 <Link
                   to="/profile/trips"
                   className="flex items-center gap-2 py-3 px-4 hover:bg-gray-100 rounded-lg text-gray-800"

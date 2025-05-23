@@ -28,7 +28,12 @@ const Login: React.FC = () => {
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message === 'Invalid login credentials') {
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
+        }
+        throw error;
+      }
       
       if (data.user) {
         navigate('/');
@@ -52,7 +57,12 @@ const Login: React.FC = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('OAuth')) {
+          throw new Error('Failed to sign in with Google. Please try again or use email login.');
+        }
+        throw error;
+      }
       
       // Google OAuth will handle the redirect automatically
     } catch (err: any) {
@@ -141,9 +151,9 @@ const Login: React.FC = () => {
             </div>
 
             <div className="text-sm">
-              <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+              <Link to="/reset-password" className="font-medium text-primary-600 hover:text-primary-500">
                 Forgot your password?
-              </a>
+              </Link>
             </div>
           </div>
 

@@ -2,12 +2,15 @@ export interface Destination {
   id: string;
   name: string;
   location: string;
-  description: string;
+  description1: string;
+  description2?: string;
   price: number;
   rating: number;
-  category: 'solo' | 'friends' | 'couples' | 'family';
-  imageUrl: string;
-  videoUrl?: string;
+  category: string;
+  image_url: string;
+  best_time?: string;
+  expectations?: string[];
+  created_at?: string;
 }
 
 export interface Group {

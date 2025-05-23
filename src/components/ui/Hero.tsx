@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
 
 interface HeroProps {
   title: string;
@@ -17,25 +18,56 @@ const Hero: React.FC<HeroProps> = ({
   imageUrl,
   showSearch = false,
 }) => {
+  const [destinations, setDestinations] = useState<any[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
+  const fetchDestinations = async () => {
+    const { data, error } = await supabase
+      .from('destinations')
+      .select('image_url');
+    
+    if (data) {
+      setDestinations(data);
+    }
+  };
+
+  useEffect(() => {
+    if (destinations.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => 
+          prevIndex === destinations.length - 1 ? 0 : prevIndex + 1
+        );
+      }, 5000); // Change image every 5 seconds
+
+      return () => clearInterval(timer);
+    }
+  }, [destinations]);
+
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Background Video or Image */}
-      {videoUrl ? (
-        <video
-          autoPlay
-          loop
-          muted
-          className="absolute inset-0 w-full h-full object-cover"
+      {/* Background Images */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentImageIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0"
         >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-      ) : (
-        <img
-          src={imageUrl}
-          alt="Hero background"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      )}
+          {destinations.length > 0 && (
+            <img
+              src={destinations[currentImageIndex].image_url}
+              alt="Background"
+              className="w-full h-full object-cover"
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
       
       {/* Overlay */}
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>

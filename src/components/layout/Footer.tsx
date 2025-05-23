@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-display font-bold mb-4">
-              <span className="text-primary-500">Pack</span> Your Bags
+              <span className="text-primary-500">Yatra</span>SetGo
             </h3>
             <p className="text-gray-300 mb-4">
               Your ultimate travel companion for exploring the wonders of India.
@@ -88,7 +88,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <p className="flex items-center text-gray-300">
                 <Mail size={18} className="mr-2" />
-                support@packyourbags.in
+                support@yatrasetgo.in
               </p>
               <p className="flex items-center text-gray-300">
                 <Phone size={18} className="mr-2" />
@@ -99,7 +99,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-gray-800 mt-10 pt-6 text-center text-gray-400">
-          <p>© 2025 Pack Your Bags. All rights reserved.</p>
+          <p>© 2025 YatraSetGo. All rights reserved.</p>
         </div>
       </div>
     </footer>
