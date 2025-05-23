@@ -11,6 +11,9 @@ import Groups from './pages/Groups';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
+import Dashboard from './pages/admin/Dashboard';
+import AddDestination from './pages/admin/AddDestination';
+import EditDestination from './pages/admin/EditDestination';
 
 function App() {
   return (
@@ -25,6 +28,9 @@ function App() {
             <Route path="/groups" element={<Groups />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/destinations/add" element={<AddDestination />} />
+            <Route path="/admin/destinations/edit/:id" element={<EditDestination />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
