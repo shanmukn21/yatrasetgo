@@ -32,13 +32,13 @@ const DestinationDetail: React.FC = () => {
     // Set up real-time subscription for this specific destination
     const subscription = supabase
       .channel(`destination_${slug}`)
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
           table: 'destinations',
-          filter: `name=eq.${slug.replace(/-/g, ' ')}` 
-        }, 
+          filter: `name=eq.${slug.replace(/-/g, ' ')}`
+        },
         async () => {
           const { data } = await supabase
             .from('destinations')

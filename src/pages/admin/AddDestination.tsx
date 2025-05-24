@@ -72,7 +72,7 @@ const AddDestination: React.FC = () => {
       const filteredExpectations = expectations.filter(exp => exp.trim() !== '');
 
       // Create destination in database
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('destinations')
         .insert([
           {
@@ -87,11 +87,15 @@ const AddDestination: React.FC = () => {
             best_time: formData.best_time || null,
             expectations: filteredExpectations,
           }
-        ]);
+        ])
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
-      navigate('/admin/destinations');
+      // Redirect to the new destination page using the destination name
+      const destinationSlug = formData.name.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/destination/${destinationSlug}`);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -306,7 +310,7 @@ const AddDestination: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate('/admin/destinations')}
+            onClick={() => navigate('/admin/dashboard')}
           >
             Cancel
           </Button>
