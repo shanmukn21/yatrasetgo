@@ -12,7 +12,8 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
   const navigate = useNavigate();
   
   const handleClick = () => {
-    navigate(`/destination/${destination.id}`);
+    const slug = destination.name.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/destination/${slug}`);
   };
 
   return (
@@ -22,7 +23,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
     >
       <div className="relative overflow-hidden h-60">
         <img 
-          src={destination.imageUrl} 
+          src={destination.image_url} 
           alt={destination.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -46,7 +47,7 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
         </div>
         
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {destination.description}
+          {destination.description1}
         </p>
         
         <Button fullWidth variant="primary">

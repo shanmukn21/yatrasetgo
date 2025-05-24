@@ -28,32 +28,6 @@ const DestinationDetail: React.FC = () => {
     };
 
     fetchDestination();
-
-    // Set up real-time subscription for this specific destination
-    const subscription = supabase
-      .channel(`destination_${slug}`)
-      .on('postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'destinations',
-          filter: `name=eq.${slug.replace(/-/g, ' ')}`
-        },
-        async () => {
-          const { data } = await supabase
-            .from('destinations')
-            .select('*')
-            .ilike('name', slug.replace(/-/g, ' '))
-            .single();
-          
-          if (data) setDestination(data);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [slug]);
 
   if (loading) {
