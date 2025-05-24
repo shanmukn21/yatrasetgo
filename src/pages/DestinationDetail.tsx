@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Star, Calendar, Users, ArrowLeft, Clock, Tag } from 'lucide-react';
+import { MapPin, Star, Calendar, Users, ArrowLeft, Clock, Tag, Heart, CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
-
+import { supabase } from '../lib/supabase';
 import { getDestinationBySlug } from '../lib/supabase-client';
 import Button from '../components/ui/Button';
 import { Destination } from '../types';
@@ -12,6 +12,10 @@ const DestinationDetail: React.FC = () => {
   const [destination, setDestination] = useState<Destination | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [travelers, setTravelers] = useState(1);
+  const [bookingLoading, setBookingLoading] = useState(false);
   
   useEffect(() => {
     const fetchDestination = async () => {
@@ -29,6 +33,46 @@ const DestinationDetail: React.FC = () => {
 
     fetchDestination();
   }, [slug]);
+
+  const handleSave = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/login';
+        return;
+      }
+
+      setIsSaved(!isSaved);
+      // We'll implement the actual save functionality later
+    } catch (err) {
+      console.error('Error saving destination:', err);
+    }
+  };
+
+  const handleBook = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (!selectedDate) {
+        alert('Please select a travel date');
+        return;
+      }
+
+      setBookingLoading(true);
+      // We'll implement the actual booking functionality later
+      setTimeout(() => {
+        setBookingLoading(false);
+        alert('Booking functionality will be implemented soon!');
+      }, 1000);
+    } catch (err) {
+      console.error('Error booking trip:', err);
+      setBookingLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -139,10 +183,93 @@ const DestinationDetail: React.FC = () => {
               </div>
             </div>
             
-            {/* Sidebar */}
+            {/* Booking Sidebar */}
             <div>
               <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
-                {/* Your existing booking form */}
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-2xl font-bold">₹{destination.price}</h3>
+                    <p className="text-gray-600">per person</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleSave}
+                    icon={<Heart size={20} className={isSaved ? "fill-primary-600 text-primary-600" : ""} />}
+                  >
+                    {isSaved ? 'Saved' : 'Save'}
+                  </Button>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Travel Date
+                    </label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Number of Travelers
+                    </label>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => setTravelers(prev => Math.max(1, prev - 1))}
+                        className="p-2 border border-gray-300 rounded-l-lg hover:bg-gray-50"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={travelers}
+                        onChange={(e) => setTravelers(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-20 p-2 text-center border-y border-gray-300 focus:outline-none"
+                        min="1"
+                      />
+                      <button
+                        onClick={() => setTravelers(prev => prev + 1)}
+                        className="p-2 border border-gray-300 rounded-r-lg hover:bg-gray-50"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 py-4 mb-6">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">₹{destination.price} × {travelers} travelers</span>
+                    <span>₹{destination.price * travelers}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">Service fee</span>
+                    <span>₹{Math.round(destination.price * travelers * 0.1)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                    <span>Total</span>
+                    <span>₹{destination.price * travelers + Math.round(destination.price * travelers * 0.1)}</span>
+                  </div>
+                </div>
+
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={handleBook}
+                  disabled={bookingLoading}
+                  icon={<CalendarDays size={20} />}
+                >
+                  {bookingLoading ? 'Processing...' : 'Book Now'}
+                </Button>
+
+                <p className="text-sm text-gray-500 text-center mt-4">
+                  You won't be charged yet
+                </p>
               </div>
             </div>
           </div>
