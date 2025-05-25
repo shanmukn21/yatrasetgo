@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Users, Heart, Home as HomeIcon, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 import Hero from '../components/ui/Hero';
@@ -9,26 +9,68 @@ import DestinationCard from '../components/ui/DestinationCard';
 import GroupCard from '../components/ui/GroupCard';
 import Button from '../components/ui/Button';
 
-import { getDestinationsByCategory } from '../data/destinations';
 import { groups } from '../data/groups';
+import { Destination } from '../types';
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [popularDestinations, setPopularDestinations] = useState<Destination[]>([]);
+  const [categoryImages, setCategoryImages] = useState({
+    solo: '',
+    friends: '',
+    couples: '',
+    family: ''
+  });
   
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
-    };
-    
-    checkAuth();
-  }, []);
+    const fetchDestinations = async () => {
+      try {
+        // Fetch popular destinations
+        const { data: popular, error } = await supabase
+          .from('destinations')
+          .select('*')
+          .order('views', { ascending: false })
+          .limit(3);
 
-  const soloDestinations = getDestinationsByCategory('solo').slice(0, 3);
-  const friendsDestinations = getDestinationsByCategory('friends').slice(0, 3);
-  const couplesDestinations = getDestinationsByCategory('couples').slice(0, 3);
-  const familyDestinations = getDestinationsByCategory('family').slice(0, 3);
+        if (error) {
+          console.error('Error fetching popular destinations:', error);
+          return;
+        }
+
+        if (popular) {
+          setPopularDestinations(popular);
+        }
+
+        // Fetch first destination for each category
+        const categories = ['solo', 'friends', 'couples', 'family'];
+        const images: any = {};
+
+        for (const category of categories) {
+          const { data, error: categoryError } = await supabase
+            .from('destinations')
+            .select('image_url')
+            .eq('category', category)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single();
+
+          if (categoryError) {
+            console.error(`Error fetching ${category} category image:`, categoryError);
+            continue;
+          }
+
+          if (data) {
+            images[category] = data.image_url;
+          }
+        }
+
+        setCategoryImages(images);
+      } catch (error) {
+        console.error('Error in fetchDestinations:', error);
+      }
+    };
+
+    fetchDestinations();
+  }, []);
   
   const featuredGroups = groups.slice(0, 3);
 
@@ -80,7 +122,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=solo" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src="https://images.pexels.com/photos/2387871/pexels-photo-2387871.jpeg" 
+                    src={categoryImages.solo || "https://images.pexels.com/photos/2387871/pexels-photo-2387871.jpeg"} 
                     alt="Solo Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -101,7 +143,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=friends" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src="https://images.pexels.com/photos/1078983/pexels-photo-1078983.jpeg" 
+                    src={categoryImages.friends || "https://images.pexels.com/photos/1078983/pexels-photo-1078983.jpeg"} 
                     alt="Friends Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -122,7 +164,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=couples" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src="https://images.pexels.com/photos/1603650/pexels-photo-1603650.jpeg" 
+                    src={categoryImages.couples || "https://images.pexels.com/photos/1603650/pexels-photo-1603650.jpeg"} 
                     alt="Couple Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -143,7 +185,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=family" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src="https://images.pexels.com/photos/16292239/pexels-photo-16292239/free-photo-of-man-performing-a-ritual-at-ganges-river.jpeg" 
+                    src={categoryImages.family || "https://images.pexels.com/photos/16292239/pexels-photo-16292239/free-photo-of-man-performing-a-ritual-at-ganges-river.jpeg"} 
                     alt="Family Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -167,20 +209,20 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-10">
             <div>
-              <h2 className="text-3xl font-display font-bold mb-2">Popular Destinations</h2>
+              <h2 className="text-3xl font-display font-bold mb-2">Most Popular Destinations</h2>
               <p className="text-gray-600">Explore India's most beloved travel experiences</p>
             </div>
             <Button 
               variant="ghost" 
               className="hidden md:block"
-              onClick={() => navigate('/destinations')}
+              onClick={() => window.location.href = '/destinations'}
             >
               View All Destinations
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {couplesDestinations.map((destination) => (
+            {popularDestinations.map((destination) => (
               <DestinationCard key={destination.id} destination={destination} />
             ))}
           </div>
@@ -188,7 +230,7 @@ const Home: React.FC = () => {
           <div className="text-center md:hidden">
             <Button 
               variant="outline"
-              onClick={() => navigate('/destinations')}
+              onClick={() => window.location.href = '/destinations'}
             >
               View All Destinations
             </Button>
@@ -215,7 +257,7 @@ const Home: React.FC = () => {
           <div className="text-center">
             <Button 
               variant="primary"
-              onClick={() => navigate('/groups')}
+              onClick={() => window.location.href = '/groups'}
             >
               Explore All Groups
             </Button>
@@ -302,27 +344,17 @@ const Home: React.FC = () => {
             <Button
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-primary-600"
-              onClick={() => navigate('/destinations')}
+              onClick={() => window.location.href = '/destinations'}
             >
               Explore Destinations
             </Button>
-            {isLoggedIn ? (
-              <Button
-                variant="ghost"
-                className="bg-white text-primary-600 hover:bg-gray-100"
-                onClick={() => navigate('/groups')}
-              >
-                Join a Group
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                className="bg-white text-primary-600 hover:bg-gray-100"
-                onClick={() => navigate('/register')}
-              >
-                Sign Up Now
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              className="bg-white text-primary-600 hover:bg-gray-100"
+              onClick={() => window.location.href = '/register'}
+            >
+              Sign Up Now
+            </Button>
           </div>
         </div>
       </section>
@@ -331,5 +363,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-
-export default Home

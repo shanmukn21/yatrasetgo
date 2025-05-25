@@ -26,6 +26,13 @@ const DestinationDetail: React.FC = () => {
         const data = await getDestinationBySlug(slug);
         setDestination(data);
         
+        // Increment view count
+        if (data) {
+          await supabase.rpc('increment_destination_views', {
+            destination_id: data.id
+          });
+        }
+        
         // Check if destination is saved
         const { data: { user } } = await supabase.auth.getUser();
         if (user && data) {
@@ -34,7 +41,7 @@ const DestinationDetail: React.FC = () => {
             .select('id')
             .eq('user_id', user.id)
             .eq('destination_id', data.id)
-            .single();
+            .maybeSingle();
           
           setIsSaved(!!savedData);
         }
