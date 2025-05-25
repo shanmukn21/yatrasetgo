@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Plus, Minus } from 'lucide-react';
+import { Upload, Plus, Minus, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { uploadDestinationImage } from '../../lib/supabase-client';
 import Button from '../../components/ui/Button';
