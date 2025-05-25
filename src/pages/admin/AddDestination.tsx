@@ -4,6 +4,7 @@ import { Upload, Plus, Minus } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { uploadDestinationImage } from '../../lib/supabase-client';
 import Button from '../../components/ui/Button';
+import { TRAVEL_CATEGORIES } from '../../types';
 
 const AddDestination: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const AddDestination: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [expectations, setExpectations] = useState<string[]>(['']);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -19,7 +21,6 @@ const AddDestination: React.FC = () => {
     description2: '',
     price: '',
     rating: '',
-    category: '',
     best_time: '',
   });
 
@@ -54,6 +55,14 @@ const AddDestination: React.FC = () => {
     setExpectations(newExpectations);
   };
 
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -63,6 +72,10 @@ const AddDestination: React.FC = () => {
 
       if (!imageFile) {
         throw new Error('Please select an image');
+      }
+
+      if (selectedCategories.length === 0) {
+        throw new Error('Please select at least one category');
       }
 
       // Upload image to Supabase Storage
@@ -82,7 +95,7 @@ const AddDestination: React.FC = () => {
             description2: formData.description2 || null,
             price: parseFloat(formData.price),
             rating: parseFloat(formData.rating),
-            category: formData.category,
+            categories: selectedCategories,
             image_url: imageUrl,
             best_time: formData.best_time || null,
             expectations: filteredExpectations,
@@ -178,27 +191,6 @@ const AddDestination: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category *
-            </label>
-            <select
-              name="category"
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-              value={formData.category}
-              onChange={handleInputChange}
-            >
-              <option value="">Select a category</option>
-              <option value="solo">Solo Adventures</option>
-              <option value="friends">Friends Fun</option>
-              <option value="couples">Couple Escapes</option>
-              <option value="family">Family Pilgrimages</option>
-              <option value="spiritual">Spiritual</option>
-              <option value="adventure">Adventure</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               Best Time to Visit
             </label>
             <input
@@ -209,6 +201,51 @@ const AddDestination: React.FC = () => {
               onChange={handleInputChange}
               placeholder="e.g., October to March"
             />
+          </div>
+        </div>
+
+        {/* Categories Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Categories *
+          </label>
+          
+          <div className="space-y-4">
+            {/* Traveler Types */}
+            <div>
+              <h4 className="text-sm font-medium mb-2">By Type of Traveler</h4>
+              <div className="flex flex-wrap gap-2">
+                {TRAVEL_CATEGORIES.types.map(category => (
+                  <Button
+                    key={category.id}
+                    type="button"
+                    variant={selectedCategories.includes(category.id) ? "primary" : "outline"}
+                    size="sm"
+                    onClick={() => toggleCategory(category.id)}
+                  >
+                    {category.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Travel Purposes */}
+            <div>
+              <h4 className="text-sm font-medium mb-2">By Travel Purpose</h4>
+              <div className="flex flex-wrap gap-2">
+                {TRAVEL_CATEGORIES.purposes.map(category => (
+                  <Button
+                    key={category.id}
+                    type="button"
+                    variant={selectedCategories.includes(category.id) ? "primary" : "outline"}
+                    size="sm"
+                    onClick={() => toggleCategory(category.id)}
+                  >
+                    {category.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

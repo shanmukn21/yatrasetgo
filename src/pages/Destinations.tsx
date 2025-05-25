@@ -8,15 +8,15 @@ import { getDestinations } from '../lib/supabase-client';
 import DestinationCard from '../components/ui/DestinationCard';
 import Button from '../components/ui/Button';
 import Hero from '../components/ui/Hero';
-import { Destination } from '../types';
+import { Destination, TRAVEL_CATEGORIES } from '../types';
 
 const Destinations: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const categoryParam = queryParams.get('category');
+  const initialCategories = queryParams.get('categories')?.split(',') || [];
   
-  const [activeFilter, setActiveFilter] = useState<string>(categoryParam || 'all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,18 +62,29 @@ const Destinations: React.FC = () => {
     };
   }, []);
 
-  const filteredDestinations = destinations.filter(dest => 
-    activeFilter === 'all' || dest.category === activeFilter
-  );
+  useEffect(() => {
+    // Update URL when selected categories change
+    const params = new URLSearchParams(location.search);
+    if (selectedCategories.length > 0) {
+      params.set('categories', selectedCategories.join(','));
+    } else {
+      params.delete('categories');
+    }
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  }, [selectedCategories, location.pathname, navigate]);
 
-  // Categories for filter buttons
-  const categories = [
-    { id: 'all', label: 'All Destinations' },
-    { id: 'solo', label: 'Solo Adventures' },
-    { id: 'friends', label: 'Friends Fun' },
-    { id: 'couples', label: 'Couple Escapes' },
-    { id: 'family', label: 'Family Pilgrimages' },
-  ];
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const filteredDestinations = destinations.filter(dest => 
+    selectedCategories.length === 0 || 
+    selectedCategories.some(cat => (dest.categories || []).includes(cat))
+  );
 
   // Animation variants
   const containerVariants = {
@@ -111,24 +122,45 @@ const Destinations: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* Filter Buttons */}
+              {/* Filter Section */}
               <div className="mb-10">
                 <div className="flex items-center justify-center mb-6">
                   <Filter size={20} className="mr-2 text-primary-600" />
                   <h3 className="text-xl font-semibold">Filter Destinations</h3>
                 </div>
                 
-                <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-                  {categories.map(category => (
-                    <Button
-                      key={category.id}
-                      variant={activeFilter === category.id ? "primary" : "outline"}
-                      size="md"
-                      onClick={() => setActiveFilter(category.id)}
-                    >
-                      {category.label}
-                    </Button>
-                  ))}
+                {/* Traveler Types */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-medium mb-3 text-center">By Type of Traveler</h4>
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+                    {TRAVEL_CATEGORIES.types.map(category => (
+                      <Button
+                        key={category.id}
+                        variant={selectedCategories.includes(category.id) ? "primary" : "outline"}
+                        size="md"
+                        onClick={() => toggleCategory(category.id)}
+                      >
+                        {category.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Travel Purposes */}
+                <div>
+                  <h4 className="text-lg font-medium mb-3 text-center">By Travel Purpose</h4>
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+                    {TRAVEL_CATEGORIES.purposes.map(category => (
+                      <Button
+                        key={category.id}
+                        variant={selectedCategories.includes(category.id) ? "primary" : "outline"}
+                        size="md"
+                        onClick={() => toggleCategory(category.id)}
+                      >
+                        {category.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
               
@@ -161,9 +193,12 @@ const Destinations: React.FC = () => {
                 <div className="text-center py-10">
                   <MapPin size={48} className="mx-auto text-gray-400 mb-4" />
                   <h3 className="text-xl font-semibold mb-2">No destinations found</h3>
-                  <p className="text-gray-600 mb-6">Try changing your filters to see more results.</p>
-                  <Button variant="primary" onClick={() => setActiveFilter('all')}>
-                    View All Destinations
+                  <p className="text-gray-600 mb-6">Try adjusting your filters to see more results.</p>
+                  <Button 
+                    variant="primary" 
+                    onClick={() => setSelectedCategories([])}
+                  >
+                    Clear All Filters
                   </Button>
                 </div>
               )}

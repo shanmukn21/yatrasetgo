@@ -46,9 +46,18 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
           <div className="font-bold text-lg text-primary-600">₹{destination.price}</div>
         </div>
         
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {destination.description1}
-        </p>
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-1 mb-3">
+            <span
+              className="px-2 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700"
+            >
+              {destination.category.charAt(0).toUpperCase() + destination.category.slice(1)}
+            </span>
+          </div>
+          <p className="text-gray-600 text-sm line-clamp-2">
+            {destination.description1}
+          </p>
+        </div>
         
         <Button fullWidth variant="primary">
           View Details
