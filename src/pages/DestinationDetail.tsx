@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapPin, Star, Calendar, Users, ArrowLeft, Clock, Tag, Heart, CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -9,6 +9,7 @@ import { Destination } from '../types';
 
 const DestinationDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +17,7 @@ const DestinationDetail: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [travelers, setTravelers] = useState(1);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
   
   useEffect(() => {
     const fetchDestination = async () => {
@@ -23,6 +25,19 @@ const DestinationDetail: React.FC = () => {
         if (!slug) throw new Error('No destination specified');
         const data = await getDestinationBySlug(slug);
         setDestination(data);
+        
+        // Check if destination is saved
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && data) {
+          const { data: savedData } = await supabase
+            .from('saved_destinations')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('destination_id', data.id)
+            .single();
+          
+          setIsSaved(!!savedData);
+        }
       } catch (err) {
         setError('Failed to load destination');
         console.error(err);
@@ -37,23 +52,45 @@ const DestinationDetail: React.FC = () => {
   const handleSave = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = '/login';
+      if (!user || !destination) {
+        navigate('/login');
         return;
       }
 
-      setIsSaved(!isSaved);
-      // We'll implement the actual save functionality later
+      setSaveLoading(true);
+      
+      if (isSaved) {
+        // Remove from saved destinations
+        await supabase
+          .from('saved_destinations')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_id', destination.id);
+        
+        setIsSaved(false);
+      } else {
+        // Add to saved destinations
+        await supabase
+          .from('saved_destinations')
+          .insert({
+            user_id: user.id,
+            destination_id: destination.id
+          });
+        
+        setIsSaved(true);
+      }
     } catch (err) {
       console.error('Error saving destination:', err);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   const handleBook = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = '/login';
+      if (!user || !destination) {
+        navigate('/login');
         return;
       }
 
@@ -63,13 +100,24 @@ const DestinationDetail: React.FC = () => {
       }
 
       setBookingLoading(true);
-      // We'll implement the actual booking functionality later
-      setTimeout(() => {
-        setBookingLoading(false);
-        alert('Booking functionality will be implemented soon!');
-      }, 1000);
+
+      // Add to trip history
+      await supabase
+        .from('trip_history')
+        .insert({
+          user_id: user.id,
+          destination_id: destination.id,
+          travel_date: selectedDate,
+          status: 'planned'
+        });
+
+      // Show success message and redirect to trips page
+      alert('Trip booked successfully!');
+      navigate('/profile/trips');
     } catch (err) {
       console.error('Error booking trip:', err);
+      alert('Failed to book trip. Please try again.');
+    } finally {
       setBookingLoading(false);
     }
   };
@@ -194,9 +242,10 @@ const DestinationDetail: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={handleSave}
+                    disabled={saveLoading}
                     icon={<Heart size={20} className={isSaved ? "fill-primary-600 text-primary-600" : ""} />}
                   >
-                    {isSaved ? 'Saved' : 'Save'}
+                    {saveLoading ? 'Saving...' : (isSaved ? 'Saved' : 'Save')}
                   </Button>
                 </div>
 
