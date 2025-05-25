@@ -27,14 +27,7 @@ const SavedPlaces: React.FC = () => {
         .from('saved_destinations')
         .select(`
           destination_id,
-          destinations (
-            id,
-            name,
-            location,
-            rating,
-            price,
-            image_url
-          )
+          destinations (*)
         `)
         .eq('user_id', user.id);
 
