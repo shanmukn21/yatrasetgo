@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -29,20 +29,27 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/destinations" element={<Destinations />} />
-            <Route path="/destination/:slug" element={<DestinationDetail />} />
+            <Route path="/destinations/:category" element={<Destinations />} />
+            <Route path="/destination/:id" element={<DestinationDetail />} />
             <Route path="/groups" element={<Groups />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
             {/* Profile Routes */}
-            <Route path="/profile/trips" element={<Trips />} />
-            <Route path="/profile/saved" element={<SavedPlaces />} />
-            <Route path="/profile/settings" element={<Settings />} />
+            <Route path="/profile">
+              <Route path="trips" element={<Trips />} />
+              <Route path="saved" element={<SavedPlaces />} />
+              <Route path="settings" element={<Settings />} />
+              <Route index element={<Navigate to="/profile/trips" replace />} />
+            </Route>
             
             {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/admin/destinations/add" element={<AddDestination />} />
-            <Route path="/admin/destinations/edit/:id" element={<EditDestination />} />
+            <Route path="/admin">
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="destinations/add" element={<AddDestination />} />
+              <Route path="destinations/edit/:id" element={<EditDestination />} />
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            </Route>
             
             <Route path="*" element={<NotFound />} />
           </Routes>

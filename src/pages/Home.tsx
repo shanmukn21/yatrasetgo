@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Users, Heart, Home as HomeIcon, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 import Hero from '../components/ui/Hero';
 import DestinationCard from '../components/ui/DestinationCard';
@@ -12,6 +13,18 @@ import { getDestinationsByCategory } from '../data/destinations';
 import { groups } from '../data/groups';
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+    
+    checkAuth();
+  }, []);
+
   const soloDestinations = getDestinationsByCategory('solo').slice(0, 3);
   const friendsDestinations = getDestinationsByCategory('friends').slice(0, 3);
   const couplesDestinations = getDestinationsByCategory('couples').slice(0, 3);
@@ -160,7 +173,7 @@ const Home: React.FC = () => {
             <Button 
               variant="ghost" 
               className="hidden md:block"
-              onClick={() => window.location.href = '/destinations'}
+              onClick={() => navigate('/destinations')}
             >
               View All Destinations
             </Button>
@@ -175,7 +188,7 @@ const Home: React.FC = () => {
           <div className="text-center md:hidden">
             <Button 
               variant="outline"
-              onClick={() => window.location.href = '/destinations'}
+              onClick={() => navigate('/destinations')}
             >
               View All Destinations
             </Button>
@@ -202,7 +215,7 @@ const Home: React.FC = () => {
           <div className="text-center">
             <Button 
               variant="primary"
-              onClick={() => window.location.href = '/groups'}
+              onClick={() => navigate('/groups')}
             >
               Explore All Groups
             </Button>
@@ -289,17 +302,27 @@ const Home: React.FC = () => {
             <Button
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-primary-600"
-              onClick={() => window.location.href = '/destinations'}
+              onClick={() => navigate('/destinations')}
             >
               Explore Destinations
             </Button>
-            <Button
-              variant="ghost"
-              className="bg-white text-primary-600 hover:bg-gray-100"
-              onClick={() => window.location.href = '/register'}
-            >
-              Sign Up Now
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                variant="ghost"
+                className="bg-white text-primary-600 hover:bg-gray-100"
+                onClick={() => navigate('/groups')}
+              >
+                Join a Group
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                className="bg-white text-primary-600 hover:bg-gray-100"
+                onClick={() => navigate('/register')}
+              >
+                Sign Up Now
+              </Button>
+            )}
           </div>
         </div>
       </section>
@@ -308,3 +331,5 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
+export default Home
