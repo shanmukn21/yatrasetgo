@@ -6,19 +6,16 @@ import { supabase } from '../lib/supabase';
 
 import Hero from '../components/ui/Hero';
 import DestinationCard from '../components/ui/DestinationCard';
-import GroupCard from '../components/ui/GroupCard';
 import Button from '../components/ui/Button';
-
-import { groups } from '../data/groups';
 import { Destination } from '../types';
 
 const Home: React.FC = () => {
   const [popularDestinations, setPopularDestinations] = useState<Destination[]>([]);
   const [categoryImages, setCategoryImages] = useState({
-    solo: '',
-    friends: '',
-    couples: '',
-    family: ''
+    solo: 'https://images.pexels.com/photos/2387871/pexels-photo-2387871.jpeg',
+    friends: 'https://images.pexels.com/photos/1078983/pexels-photo-1078983.jpeg',
+    couples: 'https://images.pexels.com/photos/1603650/pexels-photo-1603650.jpeg',
+    family: 'https://images.pexels.com/photos/16292239/pexels-photo-16292239/free-photo-of-man-performing-a-ritual-at-ganges-river.jpeg'
   });
   
   useEffect(() => {
@@ -41,25 +38,25 @@ const Home: React.FC = () => {
         }
 
         // Fetch first destination for each category
-        const categories = ['solo', 'friends', 'couples', 'family'];
-        const images: any = {};
+        const categories = ['solo', 'friends', 'couple', 'family'];
+        const images: any = { ...categoryImages };
 
         for (const category of categories) {
           const { data, error: categoryError } = await supabase
             .from('destinations')
             .select('image_url')
-            .eq('category', category)
+            .contains('categories', [category])
             .order('created_at', { ascending: true })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (categoryError) {
             console.error(`Error fetching ${category} category image:`, categoryError);
             continue;
           }
 
-          if (data) {
-            images[category] = data.image_url;
+          if (data?.image_url) {
+            images[category === 'couple' ? 'couples' : category] = data.image_url;
           }
         }
 
@@ -71,8 +68,6 @@ const Home: React.FC = () => {
 
     fetchDestinations();
   }, []);
-  
-  const featuredGroups = groups.slice(0, 3);
 
   // Animation variants
   const containerVariants = {
@@ -122,7 +117,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=solo" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src={categoryImages.solo || "https://images.pexels.com/photos/2387871/pexels-photo-2387871.jpeg"} 
+                    src={categoryImages.solo} 
                     alt="Solo Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -143,7 +138,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=friends" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src={categoryImages.friends || "https://images.pexels.com/photos/1078983/pexels-photo-1078983.jpeg"} 
+                    src={categoryImages.friends} 
                     alt="Friends Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -164,7 +159,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=couples" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src={categoryImages.couples || "https://images.pexels.com/photos/1603650/pexels-photo-1603650.jpeg"} 
+                    src={categoryImages.couples} 
                     alt="Couple Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -185,7 +180,7 @@ const Home: React.FC = () => {
               <Link to="/destinations?category=family" className="block">
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src={categoryImages.family || "https://images.pexels.com/photos/16292239/pexels-photo-16292239/free-photo-of-man-performing-a-ritual-at-ganges-river.jpeg"} 
+                    src={categoryImages.family} 
                     alt="Family Travel" 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -238,33 +233,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Join a Group Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-display font-bold mb-4">Join a Travel Group</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Connect with like-minded travelers, share experiences, and split costs on your next adventure
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {featuredGroups.map((group) => (
-              <GroupCard key={group.id} group={group} />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <Button 
-              variant="primary"
-              onClick={() => window.location.href = '/groups'}
-            >
-              Explore All Groups
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials Section */}
       <section className="py-16 bg-secondary-50">
         <div className="container mx-auto px-4">
@@ -289,8 +257,8 @@ const Home: React.FC = () => {
                 </div>
               </div>
               <p className="text-gray-600">
-                "Joining a travel group through Pack Your Bags made my solo trip to Rishikesh so much more fun! 
-                I met amazing people and saved money too. Highly recommend!"
+                "My solo trip to Rishikesh was amazing! The destination recommendations 
+                and travel tips made planning so much easier."
               </p>
             </div>
             
@@ -303,11 +271,11 @@ const Home: React.FC = () => {
                 />
                 <div>
                   <h4 className="font-bold">Vikram K.</h4>
-                  <p className="text-gray-500 text-sm">Group Traveler</p>
+                  <p className="text-gray-500 text-sm">Adventure Seeker</p>
                 </div>
               </div>
               <p className="text-gray-600">
-                "The Goa trip was perfectly organized. Our group of 6 had a blast with the itinerary suggestions
+                "The Goa trip was perfectly organized. The itinerary suggestions
                 and the local experiences were truly authentic."
               </p>
             </div>
@@ -351,7 +319,7 @@ const Home: React.FC = () => {
             <Button
               variant="ghost"
               className="bg-white text-primary-600 hover:bg-gray-100"
-              onClick={() => window.location.href = '/register'}
+              onClick={() => window.location.href = '/login'}
             >
               Sign Up Now
             </Button>

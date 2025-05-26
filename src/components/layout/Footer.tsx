@@ -43,11 +43,6 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/groups" className="text-gray-300 hover:text-primary-500 transition-colors">
-                  Join a Group
-                </Link>
-              </li>
-              <li>
                 <Link to="/about" className="text-gray-300 hover:text-primary-500 transition-colors">
                   About Us
                 </Link>
@@ -68,6 +63,7 @@ const Footer: React.FC = () => {
                 <Link to="/destinations?category=friends" className="text-gray-300 hover:text-primary-500 transition-colors">
                   Group Fun
                 </Link>
+              
               </li>
               <li>
                 <Link to="/destinations?category=couples" className="text-gray-300 hover:text-primary-500 transition-colors">

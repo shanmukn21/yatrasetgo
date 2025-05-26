@@ -14,17 +14,6 @@ export interface Destination {
   views?: number;
 }
 
-export interface Group {
-  id: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  maxMembers: number;
-  currentMembers: number;
-  creator: string;
-}
-
 export interface User {
   id: string;
   name: string;

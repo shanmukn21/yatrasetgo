@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MapPin, Users, User, Home, LogOut, Bookmark, Clock, Settings, LayoutDashboard } from 'lucide-react';
+import { Menu, X, MapPin, User, Home, LogOut, Bookmark, Clock, Settings, LayoutDashboard } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -56,7 +56,6 @@ const Navbar: React.FC = () => {
   const navItems = [
     { name: 'Home', path: '/', icon: <Home size={18} /> },
     { name: 'Destinations', path: '/destinations', icon: <MapPin size={18} /> },
-    { name: 'Join a Group', path: '/groups', icon: <Users size={18} /> },
   ];
 
   return (

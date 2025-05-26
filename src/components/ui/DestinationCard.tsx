@@ -48,11 +48,11 @@ const DestinationCard: React.FC<DestinationCardProps> = ({ destination }) => {
         
         <div className="mb-4">
           <div className="flex flex-wrap gap-1 mb-3">
-            <span
-              className="px-2 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700"
-            >
-              {destination.category.charAt(0).toUpperCase() + destination.category.slice(1)}
-            </span>
+            {destination.categories && destination.categories[0] && (
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-50 text-primary-700">
+                {destination.categories[0].charAt(0).toUpperCase() + destination.categories[0].slice(1)}
+              </span>
+            )}
           </div>
           <p className="text-gray-600 text-sm line-clamp-2">
             {destination.description1}
