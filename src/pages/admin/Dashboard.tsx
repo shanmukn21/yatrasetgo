@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Trash2, Plus, AlertCircle, Users, MapPin, Calendar, TrendingUp, Mail, Key, UserX } from 'lucide-react';
+import { Pencil, Trash2, Plus, AlertCircle, Users, MapPin, Mail, Key, UserX } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/ui/Button';
 import { Destination } from '../../types';
@@ -9,12 +9,6 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    newUsersToday: 0,
-    activeTrips: 0,
-    completedTrips: 0
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -47,25 +41,6 @@ const Dashboard: React.FC = () => {
 
       if (userError) throw userError;
       setUsers(userData || []);
-
-      // Fetch statistics
-      const today = new Date().toISOString().split('T')[0];
-      const { data: statsData, error: statsError } = await supabase
-        .from('site_statistics')
-        .select('*')
-        .eq('date', today)
-        .single();
-
-      if (!statsError && statsData) {
-        setStats({
-          totalUsers: userData?.length || 0,
-          newUsersToday: userData?.filter((u: any) => 
-            new Date(u.joined_at).toISOString().split('T')[0] === today
-          ).length || 0,
-          activeTrips: statsData.active_trips || 0,
-          completedTrips: statsData.completed_trips || 0
-        });
-      }
 
     } catch (err: any) {
       setError(err.message);
@@ -156,47 +131,6 @@ const Dashboard: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-        
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">Total Users</h3>
-              <Users className="text-primary-600" size={24} />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
-            <p className="text-sm text-gray-500 mt-2">+{stats.newUsersToday} today</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">Active Trips</h3>
-              <Calendar className="text-secondary-600" size={24} />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.activeTrips}</p>
-            <p className="text-sm text-gray-500 mt-2">Currently ongoing</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">Completed Trips</h3>
-              <MapPin className="text-accent-600" size={24} />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.completedTrips}</p>
-            <p className="text-sm text-gray-500 mt-2">Successfully completed</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">Conversion Rate</h3>
-              <TrendingUp className="text-green-600" size={24} />
-            </div>
-            <p className="text-3xl font-bold text-gray-900">
-              {((stats.completedTrips / (stats.activeTrips + stats.completedTrips)) * 100).toFixed(1)}%
-            </p>
-            <p className="text-sm text-gray-500 mt-2">Trip completion rate</p>
-          </div>
-        </div>
 
         {/* User Management Section */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
@@ -338,7 +272,7 @@ const Dashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800">
-                        {destination.category}
+                        {destination.categories[0]}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
